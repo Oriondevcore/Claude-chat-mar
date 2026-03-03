@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Orion Hotel Concierge</title>
+    <link rel="manifest" href="./manifest.json" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script src="./config.js"></script>
+    <style>
+      :root {
+        --primary: #1a365d;
+        --accent: #3b82f6;
+        --bg: #f0f4f8;
+        --chat-bot-bg: #ffffff;
+        --chat-user-bg: #1a365d;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background: var(--bg);
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      /* Header */
+      header {
+        background: var(--primary);
+        color: white;
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      }
+      .brand-area {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+      .logo-img {
+        height: 50px;
+        border-radius: 8px;
+      }
+      .brand-text h1 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        margin: 0;
+      }
+      .brand-text small {
+        display: block;
+        font-size: 0.7rem;
+        color: #bdc3c7;
+        margin-top: 2px;
+      }
+      .status-indicator {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.75rem;
+        padding: 4px 10px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+      }
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #27ae60;
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      /* Chat Container */
+      #chat-container {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+      .message {
+        max-width: 80%;
+        padding: 12px 18px;
+        border-radius: 18px;
+        line-height: 1.5;
+        font-size: 15px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        word-wrap: break-word;
+      }
+      .user {
+        align-self: flex-end;
+        background: var(--chat-user-bg);
+        color: white;
+        border-bottom-right-radius: 4px;
+      }
+      .bot {
+        align-self: flex-start;
+        background: var(--chat-bot-bg);
+        color: #333;
+        border-bottom-left-radius: 4px;
+        border: 1px solid #e0e0e0;
+      }
+      .bot a {
+        color: var(--accent);
+        font-weight: bold;
+        text-decoration: none;
+      }
+
+      .typing {
+        display: none;
+        align-self: flex-start;
+        background: #fff;
+        padding: 10px 15px;
+        border-radius: 18px;
+        color: #aaa;
+        font-size: 0.85rem;
+        font-style: italic;
+      }
+
+      /* Quick Buttons */
+      #quick-buttons {
+        padding: 12px;
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        background: #fff;
+        border-top: 1px solid #eee;
+        scrollbar-width: none;
+      }
+      #quick-buttons::-webkit-scrollbar {
+        display: none;
+      }
+      .q-btn {
+        background: #f8f9fa;
+        border: 1px solid #ddd;
+        color: #444;
+        padding: 8px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        white-space: nowrap;
+        font-size: 14px;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .q-btn:hover {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+      }
+      .q-btn.emergency {
+        background: #fee2e2;
+        color: #dc2626;
+        border-color: #fca5a5;
+        font-weight: bold;
+      }
+
+      /* Input Area */
+      #input-wrapper {
+        background: white;
+        border-top: 1px solid #ddd;
+        padding-bottom: 8px;
+      }
+      #input-area {
+        display: flex;
+        padding: 10px 15px;
+        align-items: center;
+        gap: 10px;
+      }
+      input {
+        flex: 1;
+        padding: 14px;
+        border-radius: 25px;
+        border: 1px solid #ccc;
+        outline: none;
+        font-size: 16px;
+        background: #f9f9f9;
+      }
+      input:focus {
+        border-color: var(--accent);
+        background: white;
+      }
+      button.icon-btn {
+        background: none;
+        border: none;
+        font-size: 1.4rem;
+        cursor: pointer;
+        color: var(--primary);
+        padding: 8px;
+        border-radius: 50%;
+      }
+      .mic-active {
+        color: #dc2626 !important;
+        animation: pulse-mic 1.5s infinite;
+        background: #fee2e2 !important;
+      }
+      @keyframes pulse-mic {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.6;
+        }
+      }
+
+      .gemini-badge {
+        text-align: center;
+        font-size: 11px;
+        color: #7f8c8d;
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+      }
+      .gemini-badge i {
+        color: #4285f4;
+      }
+
+      /* Emergency Modal */
+      #emergency-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(26, 54, 93, 0.95);
+        z-index: 100;
+        justify-content: center;
+        align-items: center;
+      }
+      .modal-content {
+        background: white;
+        width: 90%;
+        max-width: 400px;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        text-align: center;
+        border-top: 6px solid #e74c3c;
+      }
+      .modal-icon {
+        font-size: 40px;
+        color: #e74c3c;
+        margin-bottom: 15px;
+      }
+      .modal-title {
+        font-size: 22px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 10px;
+      }
+      .modal-desc {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 20px;
+      }
+      .modal-input {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 16px;
+      }
+      .modal-btn-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      .btn-cancel {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        background: #eee;
+        color: #555;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      .btn-alert {
+        flex: 2;
+        padding: 12px;
+        border: none;
+        background: #e74c3c;
+        color: white;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+
+      /* Error Message */
+      .error-msg {
+        background: #fee2e2;
+        color: #dc2626;
+        padding: 10px 15px;
+        border-radius: 8px;
+        margin: 10px 20px;
+        font-size: 0.9rem;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand-area">
+        <img
+          src="./orion-hotel-logo.png"
+          alt="Orion Hotel"
+          class="logo-img"
+          id="logo"
+        />
+        <div class="brand-text">
+          <h1 id="hotel-name">ORION HOTEL</h1>
+          <small id="hotel-tagline">Where Stars Meet Service</small>
+        </div>
+      </div>
+      <div class="status-indicator">
+        <div class="status-dot"></div>
+        <span>Online</span>
+      </div>
+    </header>
+
+    <div class="error-msg" id="error-msg"></div>
+
+    <div id="chat-container">
+      <div class="message bot">
+        Sawubona! Welcome to <span id="welcome-name">Orion Hotel</span>. I speak
+        multiple languages and can assist with bookings, dining, or
+        housekeeping.<br /><br />
+        How can I help you today?
+      </div>
+    </div>
+
+    <div class="typing" id="typing">
+      <i class="fas fa-circle-notch fa-spin"></i> Connecting with concierge...
+    </div>
+
+    <div id="quick-buttons">
+      <button class="q-btn" onclick="sendQuick('What is the WiFi password?')">
+        <i class="fas fa-wifi"></i> WiFi
+      </button>
+      <button class="q-btn" onclick="sendQuick('What time is check out?')">
+        <i class="far fa-clock"></i> Check-out
+      </button>
+      <button
+        class="q-btn"
+        onclick="sendQuick('I want to book a table for dinner')"
+      >
+        <i class="fas fa-utensils"></i> Dining
+      </button>
+      <button class="q-btn" onclick="sendQuick('I need housekeeping services')">
+        <i class="fas fa-broom"></i> Housekeeping
+      </button>
+      <button class="q-btn" onclick="sendQuick('I would like to book a room')">
+        <i class="fas fa-bed"></i> Book Room
+      </button>
+      <button class="q-btn emergency" onclick="openEmergencyModal()">
+        <i class="fas fa-exclamation-triangle"></i> EMERGENCY
+      </button>
+    </div>
+
+    <div id="input-wrapper">
+      <div id="input-area">
+        <input
+          type="text"
+          id="user-input"
+          placeholder="Type or speak..."
+          onkeypress="handleEnter(event)"
+        />
+        <button
+          class="icon-btn"
+          id="mic-btn"
+          onclick="toggleVoice()"
+          title="Tap to speak"
+        >
+          <i class="fas fa-microphone"></i>
+        </button>
+        <button class="icon-btn" onclick="sendMessage()" title="Send message">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+      <div class="gemini-badge">
+        <i class="fas fa-bolt"></i> Powered by <strong>Gemini 2.0 Flash</strong>
+      </div>
+    </div>
+
+    <div id="emergency-modal">
+      <div class="modal-content">
+        <div class="modal-icon"><i class="fas fa-bell"></i></div>
+        <div class="modal-title">Emergency Alert</div>
+        <div class="modal-desc">
+          Please provide details so we can assist immediately.
+        </div>
+
+        <input
+          type="text"
+          id="em-name"
+          class="modal-input"
+          placeholder="Your Name"
+        />
+        <input
+          type="text"
+          id="em-room"
+          class="modal-input"
+          placeholder="Room Number"
+        />
+        <input
+          type="tel"
+          id="em-phone"
+          class="modal-input"
+          placeholder="Contact Number"
+        />
+        <input
+          type="text"
+          id="em-issue"
+          class="modal-input"
+          placeholder="Nature of Emergency"
+        />
+
+        <div class="modal-btn-group">
+          <button class="btn-cancel" onclick="closeEmergencyModal()">
+            Cancel
+          </button>
+          <button class="btn-alert" onclick="submitEmergency()">
+            🚨 ALERT STAFF
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Load configuration
+      const CONFIG =
+        typeof HOTEL_CONFIG !== "undefined"
+          ? HOTEL_CONFIG
+          : {
+              branding: {
+                name: "Orion Hotel",
+                tagline: "Where Stars Meet Service",
+                logo: "./orion-hotel-logo.png",
+              },
+              theme: { primaryColor: "#1a365d", accentColor: "#3b82f6" },
+              system: { backend: { scriptUrl: "" } },
+            };
+
+      // Apply branding
+      document.getElementById("hotel-name").innerText =
+        CONFIG.branding.name.toUpperCase();
+      document.getElementById("hotel-tagline").innerText =
+        CONFIG.branding.tagline;
+      document.getElementById("welcome-name").innerText = CONFIG.branding.name;
+      document.getElementById("logo").src = CONFIG.branding.logo;
+      document.title = CONFIG.branding.name + " Concierge";
+
+      // Apply theme colors
+      if (CONFIG.theme) {
+        document.documentElement.style.setProperty(
+          "--primary",
+          CONFIG.theme.primaryColor,
+        );
+        document.documentElement.style.setProperty(
+          "--accent",
+          CONFIG.theme.accentColor,
+        );
+        document.documentElement.style.setProperty(
+          "--chat-user-bg",
+          CONFIG.theme.primaryColor,
+        );
+      }
+
+      // API URL - REPLACE WITH YOUR DEPLOYED WEB APP URL
+      const API_URL =
+        CONFIG.system.backend.scriptUrl ||
+        "https://script.google.com/macros/s/AKfycbwFIRNeSUkKCcuv9oN2p0CbXXoqvNbNWHbjuJ1Ef9wdRI0rFzFMjQWOuZWd6_LpcR4b/exec";
+
+      let chatHistory = "";
+      let messageCount = 0;
+
+      // Service Worker
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker
+          .register("./sw.js")
+          .then(() => console.log("✅ PWA Ready"));
+      }
+
+      async function sendMessage() {
+        const input = document.getElementById("user-input");
+        const message = input.value.trim();
+        if (!message) return;
+
+        // Rate limiting
+        messageCount++;
+        if (messageCount > 10) {
+          showError("Please wait a moment before sending more messages.");
+          return;
+        }
+        setTimeout(() => messageCount--, 60000);
+
+        addMessage(message, "user");
+        input.value = "";
+        showLoading(true);
+
+        chatHistory += `\nGuest: ${message}`;
+
+        try {
+          const response = await fetch(API_URL, {
+            method: "POST",
+            body: JSON.stringify({
+              action: "chat",
+              message: message,
+              history: chatHistory,
+            }),
+          });
+
+          const data = await response.json();
+
+          showLoading(false);
+
+          if (data.status === "success") {
+            addMessage(data.reply, "bot");
+            speak(data.reply);
+            chatHistory += `\nConcierge: ${data.reply}`;
+          } else {
+            throw new Error(data.message || "Unknown error");
+          }
+        } catch (error) {
+          showLoading(false);
+          addMessage(
+            "I'm having trouble connecting. Please try again or call reception.",
+            "bot",
+          );
+          showError("Connection error. Please check your internet.");
+        }
+      }
+
+      function addMessage(text, sender) {
+        const div = document.createElement("div");
+        div.className = `message ${sender}`;
+        div.innerHTML = text.replace(
+          /(https?:\/\/[^\s]+)/g,
+          '<a href="$1" target="_blank">View Link</a>',
+        );
+        const container = document.getElementById("chat-container");
+        container.appendChild(div);
+        setTimeout(() => (container.scrollTop = container.scrollHeight), 100);
+      }
+
+      function sendQuick(text) {
+        document.getElementById("user-input").value = text;
+        sendMessage();
+      }
+
+      function handleEnter(e) {
+        if (e.key === "Enter") sendMessage();
+      }
+
+      function showLoading(show) {
+        const indicator = document.getElementById("typing");
+        const container = document.getElementById("chat-container");
+        if (show) {
+          indicator.style.display = "block";
+          container.appendChild(indicator);
+          container.scrollTop = container.scrollHeight;
+        } else {
+          indicator.style.display = "none";
+        }
+      }
+
+      function showError(msg) {
+        const errorEl = document.getElementById("error-msg");
+        errorEl.innerText = msg;
+        errorEl.style.display = "block";
+        setTimeout(() => (errorEl.style.display = "none"), 5000);
+      }
+
+      // Voice Recognition
+      const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
+      let recognition;
+      if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.lang = "en-ZA";
+        recognition.continuous = false;
+        recognition.onstart = () =>
+          document.getElementById("mic-btn").classList.add("mic-active");
+        recognition.onend = () =>
+          document.getElementById("mic-btn").classList.remove("mic-active");
+        recognition.onresult = (event) => {
+          document.getElementById("user-input").value =
+            event.results[0][0].transcript;
+          sendMessage();
+        };
+      } else {
+        document.getElementById("mic-btn").style.display = "none";
+      }
+
+      function toggleVoice() {
+        if (recognition) recognition.start();
+      }
+
+      function speak(text) {
+        if (!CONFIG.features || !CONFIG.features.voiceOutput) return;
+        const cleanText = text
+          .replace(/(https?:\/\/[^\s]+)/g, "check the link")
+          .replace(/\|\|.*?\|\|/g, "");
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        window.speechSynthesis.speak(utterance);
+      }
+
+      // Emergency Modal
+      function openEmergencyModal() {
+        document.getElementById("emergency-modal").style.display = "flex";
+      }
+
+      function closeEmergencyModal() {
+        document.getElementById("emergency-modal").style.display = "none";
+        // Clear fields
+        ["em-name", "em-room", "em-phone", "em-issue"].forEach((id) => {
+          document.getElementById(id).value = "";
+        });
+      }
+
+      function submitEmergency() {
+        const name = document.getElementById("em-name").value;
+        const room = document.getElementById("em-room").value;
+        const phone = document.getElementById("em-phone").value;
+        const issue = document.getElementById("em-issue").value;
+
+        if (!name || !room) {
+          alert("Please fill in Name and Room Number.");
+          return;
+        }
+
+        closeEmergencyModal();
+        addMessage("🚨 Alerting security and management...", "bot");
+
+        const fullMessage = `**GUEST:** ${name}\n**ROOM:** ${room}\n**CONTACT:** ${phone}\n**ISSUE:** ${issue}`;
+
+        fetch(API_URL, {
+          method: "POST",
+          body: JSON.stringify({ action: "notify", message: fullMessage }),
+        });
+      }
+    </script>
+  </body>
+</html>
